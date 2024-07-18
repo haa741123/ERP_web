@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재고조회</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 8px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>재고조회</h1>
+    <input type="text" id="searchInput" placeholder="부품 이름으로 검색...">
+    <button onclick="searchData()">검색</button>
+
+    <h2>Parts 테이블</h2>
+    <table id="partsTable">
+        <thead>
+            <tr>
+                <th>부품코드</th>
+                <th>부품명</th>
+                <th>재고량</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+        const supabaseUrl = 'https://hielzeioihjgeoastqtp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpZWx6ZWlvaWhqZ2VvYXN0cXRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjA5ODM0NDksImV4cCI6MjAzNjU1OTQ0OX0.l-UoDN3C4GKmneZMXlDhMyPjsEU1Mv_NiyR-APyY_YE'; // 실제 Anon Key로 바꿔주세요.
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+        async function fetchTableData(tableName, filter = '') {
+            let query = supabase.from(tableName).select('*');
+    
+            if (filter) {
+                // 'partName'과 'partNumber' 컬럼 모두 검색 조건에 포함
+                query = query.or(`partName.ilike.%${filter}%,partCode.ilike.%${filter}%`);
+            }
+    
+            let { data, error } = await query;
+    
+            if (error) {
+                console.error('데이터 가져오기 오류:', error);
+                return;
+            }
+    
+            const tableBody = document.getElementById(tableName + 'Table').querySelector('tbody');
+            tableBody.innerHTML = '';
+    
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                Object.values(row).forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+    
+        function searchData() {
+            const searchValue = document.getElementById('searchInput').value.trim();
+            fetchTableData('parts', searchValue);
+        }
+        
+        // 페이지 로드 시 초기 데이터 로드
+        fetchTableData('parts');
+    </script>
+    
+</body>
+</html>
